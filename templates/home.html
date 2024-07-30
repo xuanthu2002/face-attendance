@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Trang Chủ{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Trang Chủ</h1>
+<div class="list-group">
+    <a href="{% url 'mau_list' %}" class="list-group-item list-group-item-action">Quản Lý Mẫu</a>
+    <a href="{% url 'diem_danh' %}" class="list-group-item list-group-item-action">Điểm Danh</a>
+    <a href="{% url 'mohinh_list' %}" class="list-group-item list-group-item-action">Quản Lý Mô Hình</a>
+</div>
+{% endblock %}

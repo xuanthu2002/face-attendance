@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Chi Tiết Nhân Viên{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Chi Tiết Nhân Viên: {{ nhanvien.hoten }}</h1>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Họ Tên</th>
+        <td>{{ nhanvien.hoten }}</td>
+    </tr>
+    <tr>
+        <th>Ngày Sinh</th>
+        <td>{{ nhanvien.ngay_sinh }}</td>
+    </tr>
+    <tr>
+        <th>Địa Chỉ</th>
+        <td>{{ nhanvien.dia_chi }}</td>
+    </tr>
+    <tr>
+        <th>Số Điện Thoại</th>
+        <td>{{ nhanvien.so_dt }}</td>
+    </tr>
+    <tr>
+        <th>Email</th>
+        <td>{{ nhanvien.email }}</td>
+    </tr>
+</table>
+
+<a href="{% url 'nhanvien_list' %}" class="btn btn-secondary">Trở Lại Danh Sách Nhân Viên</a>
+<a href="{% url 'mau_list' %}?nhanvien_id={{ nhanvien.id }}" class="btn btn-primary">Xem Mẫu</a>
+<a href="{% url 'nhanvien_edit' nhanvien.id %}" class="btn btn-warning">Sửa</a>
+<button class="btn btn-danger" onclick="confirmDelete('{{ nhanvien.id }}')">Xóa</button>
+
+<!-- Hidden form for delete action -->
+<form id="delete-form" method="post" style="display:none;">
+    {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    function confirmDelete(nhanvienId) {
+        if (confirm('Bạn có chắc chắn muốn xóa nhân viên này không?')) {
+            const form = document.getElementById('delete-form');
+            const actionUrl = `/nhanvien/delete/${nhanvienId}/`;
+
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '{% url "nhanvien_list" %}';
+                } else {
+                    alert('Xóa nhân viên thất bại: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi xóa nhân viên');
+            });
+        }
+    }
+</script>
+{% endblock %}

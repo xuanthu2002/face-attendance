@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Danh Sách Nhân Viên{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Danh Sách Nhân Viên</h1>
+
+<table class="table table-striped table-bordered">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Họ Tên</th>
+        <th>Ngày Sinh</th>
+        <th>Địa Chỉ</th>
+        <th>Số Điện Thoại</th>
+        <th>Email</th>
+        <th>Hành Động</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for nhanvien in nhanvien_list %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ nhanvien.hoten }}</td>
+        <td>{{ nhanvien.ngay_sinh }}</td>
+        <td>{{ nhanvien.dia_chi }}</td>
+        <td>{{ nhanvien.so_dt }}</td>
+        <td>{{ nhanvien.email }}</td>
+        <td>
+            <a href="{% url 'mau_list' %}?nhanvien_id={{ nhanvien.id }}" class="btn btn-primary btn-sm">Xem Mẫu</a>
+            <a href="{% url 'nhanvien_detail' nhanvien.id %}" class="btn btn-info btn-sm">Chi Tiết</a>
+            <a href="{% url 'nhanvien_edit' nhanvien.id %}" class="btn btn-warning btn-sm">Sửa</a>
+            <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ nhanvien.id }}')">Xóa</button>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="7" class="text-center">Không có nhân viên nào</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- Hidden form for delete action -->
+<form id="delete-form" method="post" style="display:none;">
+    {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    function confirmDelete(nhanvienId) {
+        if (confirm('Bạn có chắc chắn muốn xóa nhân viên này không?')) {
+            const form = document.getElementById('delete-form');
+            const actionUrl = `/nhanvien/delete/${nhanvienId}/`;
+
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`nhanvien-${nhanvienId}`).remove();
+                } else {
+                    alert('Xóa nhân viên thất bại: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi xóa nhân viên');
+            });
+        }
+    }
+</script>
+{% endblock %}

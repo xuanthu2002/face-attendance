@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Chi Tiết Mô Hình{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Chi Tiết Mô Hình: {{ mohinh.ten }}</h1>
+
+<p><strong>Ngày Train:</strong> {{ mohinh.ngay_train }}</p>
+<p><strong>Trạng Thái:</strong> {{ mohinh.active|yesno:"Hoạt động,Không hoạt động" }}</p>
+
+<h2 class="my-4">Danh Sách Nhân Viên</h2>
+
+<table class="table table-striped table-bordered">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Nhân Viên</th>
+        <th>Hành Động</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for nhanvien in nhanvien_list %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ nhanvien.hoten }}</td>
+        <td>
+            <a href="{% url 'nhanvien_mau_list' mohinh.id nhanvien.id %}" class="btn btn-info btn-sm">Xem Mẫu</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4" class="text-center">Không có nhân viên nào</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

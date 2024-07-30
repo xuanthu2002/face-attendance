@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chi tiết Mẫu</title>
+</head>
+<body>
+<h1>Chi tiết Mẫu</h1>
+<p>Nhân viên: {{ mau.nhanvien }}</p>
+<p>Link: <img src="{{ mau.link.url }}" alt="Mẫu"></p>
+<a href="{% url 'mau_list' %}">Quay lại danh sách</a>
+</body>
+</html>

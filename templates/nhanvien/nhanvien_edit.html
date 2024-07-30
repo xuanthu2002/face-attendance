@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Sửa Nhân Viên{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Sửa Nhân Viên: {{ nhanvien.hoten }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a href="{% url 'nhanvien_detail' nhanvien.id %}" class="btn btn-secondary">Hủy</a>
+</form>
+{% endblock %}

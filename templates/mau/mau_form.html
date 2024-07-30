@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Thêm/Sửa Mẫu{% endblock %}
+
+{% block content %}
+<h1 class="my-4">{{ form.instance.pk|yesno:"Sửa Mẫu,Thêm Mẫu" }}</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Lưu</button>
+</form>
+{% endblock %}
