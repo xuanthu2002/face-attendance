@@ -29,19 +29,6 @@ def mau_create(request, nhanvien_id):
     return render(request, 'mau/mau_form.html', {'form': form, 'nhanvien': nhanvien})
 
 
-def mau_edit(request, pk):
-    mau = get_object_or_404(Mau, pk=pk)
-    nhanvien = mau.nhanvien
-    if request.method == 'POST':
-        form = MauForm(request.POST, request.FILES, instance=mau)
-        if form.is_valid():
-            form.save()
-            return redirect('mau_list', nhanvien_id=nhanvien.id)
-    else:
-        form = MauForm(instance=mau)
-    return render(request, 'mau/mau_form.html', {'form': form, 'nhanvien': nhanvien})
-
-
 def mau_delete(request, pk):
     mau = get_object_or_404(Mau, pk=pk)
     if request.method == 'POST':

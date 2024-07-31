@@ -12,8 +12,6 @@ import pickle
 import cv2
 import face_recognition
 import numpy as np
-from matplotlib import pyplot as plt, rcParams
-from sklearn.manifold import TSNE
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 
@@ -23,13 +21,17 @@ from face_attendance import settings
 
 def train(mohinh_id):
     mohinh = MoHinh.objects.get(pk=mohinh_id)
+    if not mohinh:
+        return False, "Không tìm tấy mô hình"
     X = []
     y = []
     i = 0
     for mau in mohinh.ds_mau.all():
         label = mau.nhanvien.id
-        img_path = os.path.join(settings.MEDIA_ROOT,
-                                mau.link.name)  # Đường dẫn ảnh trong DB hoặc có thể là một ImageField
+        img_path = os.path.join(
+            settings.MEDIA_ROOT,
+            mau.link.name
+        )  # Đường dẫn ảnh trong DB hoặc có thể là một ImageField
         print(f"Processing {mau.nhanvien.hoten}: {img_path}")
 
         try:
@@ -70,27 +72,4 @@ def train(mohinh_id):
     with open(svc_save_path, 'wb') as f:
         pickle.dump(svc, f)
 
-    # Hiển thị dữ liệu (nếu cần)
-    vizualize_Data(X1, targets)
-
-
-def vizualize_Data(embedded, targets):
-    X_embedded = TSNE(n_components=2).fit_transform(embedded)
-
-    for i, t in enumerate(set(targets)):
-        idx = targets == t
-        plt.scatter(X_embedded[idx, 0], X_embedded[idx, 1], label=t)
-
-    plt.legend(bbox_to_anchor=(1, 1))
-    rcParams.update({'figure.autolayout': True})
-    plt.tight_layout()
-
-    visualisations_path = os.path.join(settings.MEDIA_ROOT, 'visualisations')
-    if not os.path.exists(visualisations_path):
-        os.makedirs(visualisations_path)
-
-    plt.savefig(os.path.join(visualisations_path, 'training_visualisation.png'))
-    plt.close()
-
-
-train(1)
+    return True, "Success"

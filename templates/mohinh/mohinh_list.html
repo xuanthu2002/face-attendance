@@ -56,7 +56,7 @@
     function confirmDelete(mohinhId) {
         if (confirm('Bạn có chắc chắn muốn xóa mô hình này không?')) {
             const form = document.getElementById('delete-form');
-            form.action = `/mohinh/delete/${mohinhId}/`;
+            form.action = `/mohinh/${mohinhId}/delete/`;
             form.submit();
         }
     }

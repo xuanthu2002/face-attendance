@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 
 from data_app.models import MoHinh, Mau, NhanVien
 from .forms import MoHinhForm
+from .train import train
 
 
 def mohinh_list(request):
@@ -97,3 +98,15 @@ def nhanvien_mau_list(request, mohinh_id, nhanvien_id):
         'mau_in_mohinh': mau_in_mohinh,
     }
     return render(request, 'mohinh/nhanvien_mau_list.html', context)
+
+
+def train_mohinh(request):
+    body_unicode = request.body.decode('utf-8')
+    # Phân tích cú pháp chuỗi JSON thành dictionary
+    body_data = json.loads(body_unicode)
+    # Lấy giá trị mohinh_id từ dictionary
+    mohinh_id = body_data.get('mohinh_id')
+    success, message = train(mohinh_id)
+    if success:
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False, "error": message})

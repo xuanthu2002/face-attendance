@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'data_app',
     'rest_framework',
-    'diemdanh_app',
     'web_app',
 ]
 

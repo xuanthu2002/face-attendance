@@ -49,3 +49,9 @@ class LuongNhanVienSerializer(serializers.ModelSerializer):
     class Meta:
         model = LuongNhanVien
         fields = '__all__'
+
+
+class DiemDanhSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiemDanh
+        fields = '__all__'

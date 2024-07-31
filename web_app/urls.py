@@ -1,8 +1,9 @@
 from django.urls import path
 
 from . import mau_views, nhanvien_views, mohinh_views
-from .diemdanh_views import diem_danh
+from .diemdanh_views import diemdanh
 from .home_views import home
+from .nhandien_views import nhandien
 
 urlpatterns = [
     path('', home, name='home'),
@@ -14,10 +15,10 @@ urlpatterns = [
 
     path('mau/', mau_views.mau_list, name='mau_list'),
     path('mau/create/<int:nhanvien_id>/', mau_views.mau_create, name='mau_create'),
-    path('mau/edit/<int:pk>/', mau_views.mau_edit, name='mau_edit'),
     path('mau/delete/<int:pk>/', mau_views.mau_delete, name='mau_delete'),
 
-    path('diem-danh/', diem_danh, name='diem_danh'),
+    path('nhan-dien/', nhandien, name='nhan_dien'),
+    path('diem-danh/', diemdanh, name='diem_danh'),
 
     path('mohinh/', mohinh_views.mohinh_list, name='mohinh_list'),
     path('mohinh/create/', mohinh_views.mohinh_create, name='mohinh_create'),
@@ -29,4 +30,5 @@ urlpatterns = [
          name='nhanvien_mau_list'),
     path('mohinh/<int:mohinh_id>/them_mau/<int:mau_id>/', mohinh_views.them_mau, name='mohinh_them_mau'),
     path('mohinh/<int:mohinh_id>/xoa_mau/<int:mau_id>/', mohinh_views.xoa_mau, name='mohinh_xoa_mau'),
+    path('mohinh/train/', mohinh_views.train_mohinh, name='train_mohinh')
 ]

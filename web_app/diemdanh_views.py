@@ -1,66 +1,81 @@
-import pickle
-from io import BytesIO
+import json
+from datetime import timedelta
 
-import face_recognition
-import numpy as np
-from PIL import Image
 from django.http import JsonResponse
-from django.shortcuts import render
-from sklearn.preprocessing import LabelEncoder
+from django.shortcuts import redirect
+from django.utils import timezone
+from rest_framework import status
 
-from data_app.serializers import NhanVienSerializer
-from face_attendance import settings
-from web_app.recongnition import get_nhanvien_from_id
-
-
-def diem_danh(request):
-    if request.method == 'GET':
-        return render(request, 'diemdanh/diemdanh.html')
-
-    if request.method == 'POST':
-        image = request.FILES.get('image')
-        if image:
-            nhanvien, error_message = nhan_dien(image)
-            serializer = NhanVienSerializer(nhanvien)
-            if nhanvien:
-                return JsonResponse({'success': True, 'nhanvien': serializer.data})
-            else:
-                return JsonResponse({'success': False, 'error_message': error_message})
-        else:
-            return JsonResponse({'success': False, 'error_message': 'No image uploaded'})
+from data_app.models import NhanVien, DangKyLich, DiemDanh
 
 
-def nhan_dien(image_file):
-    # Load the image from the uploaded file
-    img = Image.open(BytesIO(image_file.read()))
-    img = np.array(img)  # Convert PIL image to NumPy array
+def diemdanh(request):
+    if request.method == "GET":
+        return redirect('nhan_dien')
 
-    # Load model and label mapping
-    model_id = 1  # Replace with the actual model_id you want to use
-    svc_save_path = f'{settings.MODEL_ROOT}/{model_id}/svc.sav'
-    classes_path = f'{settings.MODEL_ROOT}/{model_id}/classes.npy'
+    # Giải mã chuỗi byte thành chuỗi Unicode
+    body_unicode = request.body.decode('utf-8')
+    # Phân tích cú pháp chuỗi JSON thành dictionary
+    body_data = json.loads(body_unicode)
+    # Lấy giá trị nhanvien_id từ dictionary
+    nhanvien_id = body_data.get('nhanvien_id')
+    if not nhanvien_id:
+        return redirect('nhan_dien')
+    try:
+        nhanvien = NhanVien.objects.get(id=nhanvien_id)
+    except NhanVien.DoesNotExist:
+        return JsonResponse({"error": "Không tìm thấy nhân viên"}, status=status.HTTP_404_NOT_FOUND)
 
-    with open(svc_save_path, 'rb') as f:
-        svc = pickle.load(f)
-    encoder = LabelEncoder()
-    encoder.classes_ = np.load(classes_path)
+    dang_ky_lich = get_lich_diem_danh(nhanvien_id)
+    if not dang_ky_lich:
+        return JsonResponse({"error": "Bạn không có lịch làm việc hôm nay"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Preprocess image
-    face_encodings = face_recognition.face_encodings(img)
-    if not face_encodings:
-        return None, "No faces found in the image."
+    now = timezone.now()
+    today = now.date()
 
-    face_encoding = face_encodings[0]  # Assume one face per image
-    face_encoding = face_encoding.reshape(1, -1)  # Reshape for model input
+    # Kiểm tra nếu đã có bản ghi điểm danh trong ngày
+    diem_danh = DiemDanh.objects.filter(ca_lam_viec=dang_ky_lich, ngay=today).first()
+    if diem_danh:  # Nếu đã có gio_vao, cập nhật gio_ra
+        if diem_danh.gio_vao:
+            diem_danh.gio_ra = now.time()
+            diem_danh.save()
+            return JsonResponse({"success": True, "message": "Check-out time recorded", "gio_ra": diem_danh.gio_ra},
+                                status=status.HTTP_200_OK)
+    else:  # Nếu chưa có, tạo bản ghi mới với gio_vao
+        DiemDanh.objects.create(ca_lam_viec=dang_ky_lich, ngay=today, gio_vao=now.time())
+        return JsonResponse({"success": True, "message": "Check-in time recorded", "gio_vao": now.time()},
+                            status=status.HTTP_200_OK)
 
-    # Predict
-    prob = svc.predict_proba(face_encoding)
-    result = np.argmax(prob, axis=1)
-    confidence = np.max(prob)
 
-    if confidence < 0.7:  # Adjust threshold as needed
-        return None, "Face not recognized with high enough confidence."
+def get_lich_diem_danh(nhanvien_id):
+    def time_diff(time1, time2):
+        t1 = timedelta(hours=time1.hour, minutes=time1.minute, seconds=time1.second)
+        t2 = timedelta(hours=time2.hour, minutes=time2.minute, seconds=time2.second)
+        return abs(t1 - t2)
 
-    predicted_class_id = result[0]
-    nhanvien = get_nhanvien_from_id(predicted_class_id)
-    return nhanvien, None
+    now = timezone.now()
+    today = now.date()
+    ds_dang_ky_lich = DangKyLich.objects.filter(
+        nhanvien__id=nhanvien_id,
+        ngay_co_hieu_luc__date__lte=today,
+        ngay_het_han__date__gte=today,
+        lich_lam_viec__ngay__id=(today.weekday() + 1),
+    ).all()
+    if not ds_dang_ky_lich:
+        return None
+
+    lich_lam_viec_gan_nhat = None
+    min_diff = timedelta.max
+    for dang_ky_lich in ds_dang_ky_lich:
+        kip = dang_ky_lich.lich_lam_viec.kip
+        diff_in = time_diff(kip.gio_vao, now)
+        diff_out = time_diff(kip.gio_ra, now)
+
+        # Lấy khoảng cách thời gian nhỏ nhất
+        if diff_in < min_diff:
+            min_diff = diff_in
+            lich_lam_viec_gan_nhat = dang_ky_lich
+        if diff_out < min_diff:
+            min_diff = diff_out
+            lich_lam_viec_gan_nhat = dang_ky_lich
+    return lich_lam_viec_gan_nhat

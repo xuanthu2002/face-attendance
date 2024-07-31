@@ -41,3 +41,8 @@ class MoHinhViewSet(viewsets.ModelViewSet):
 class LuongNhanVienViewSet(viewsets.ModelViewSet):
     queryset = LuongNhanVien.objects.all()
     serializer_class = LuongNhanVienSerializer
+
+
+class DiemDanhViewSet(viewsets.ModelViewSet):
+    queryset = DiemDanh.objects.all()
+    serializer_class = DiemDanhSerializer

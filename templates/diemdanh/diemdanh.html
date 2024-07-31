@@ -86,7 +86,7 @@
             const formData = new FormData();
             formData.append('image', blob, 'snapshot.png');
 
-            fetch('/diem-danh/', {
+            fetch('{% url 'nhan_dien' %}', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -120,7 +120,7 @@
     // Sự kiện xác nhận điểm danh
     confirmButton.addEventListener('click', () => {
         if (recognizednhanvienId) {
-            fetch('/api/diem-danh/', {
+            fetch('{% url 'diem_danh' %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
